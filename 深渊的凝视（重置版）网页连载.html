@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>深渊的凝视（重置版）</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0a0a2a 0%, #1a1a4a 50%, #0a1a3a 100%);
+            color: #e0e0ff;
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            text-align: center;
+            padding: 60px 0 40px;
+        }
+        
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+            color: #aaccff;
+            text-shadow: 0 0 20px rgba(170, 204, 255, 0.7);
+            letter-spacing: 3px;
+            font-weight: 300;
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            color: #88aaff;
+            font-style: italic;
+            margin-bottom: 10px;
+        }
+        
+        .description {
+            max-width: 600px;
+            margin: 0 auto;
+            color: #b8c8ff;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+        
+        .toc-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 50px 0;
+            flex-grow: 1;
+        }
+        
+        .toc-list {
+            list-style: none;
+            width: 100%;
+            max-width: 600px;
+        }
+        
+        .toc-item {
+            margin-bottom: 25px;
+            transition: transform 0.3s ease;
+        }
+        
+        .toc-item:hover {
+            transform: translateX(10px);
+        }
+        
+        .toc-link {
+            display: block;
+            padding: 25px 30px;
+            background: rgba(30, 40, 80, 0.5);
+            color: #c0d0ff;
+            text-decoration: none;
+            border-radius: 15px;
+            transition: all 0.4s ease;
+            border: 1px solid rgba(100, 140, 255, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .toc-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(120, 160, 255, 0.2), transparent);
+            transition: left 0.7s ease;
+        }
+        
+        .toc-link:hover {
+            background: rgba(40, 60, 120, 0.7);
+            color: #ffffff;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            border-color: rgba(140, 180, 255, 0.5);
+        }
+        
+        .toc-link:hover::before {
+            left: 100%;
+        }
+        
+        .chapter-title {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            color: #aaccff;
+        }
+        
+        .chapter-summary {
+            color: #a0b0ee;
+            font-size: 1rem;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 30px 0 20px;
+            color: #8899cc;
+            border-top: 1px solid rgba(100, 140, 255, 0.3);
+            margin-top: auto;
+        }
+        
+        .decoration {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .floating-item {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(120, 160, 255, 0.1);
+            box-shadow: 0 0 20px 5px rgba(120, 160, 255, 0.2);
+            animation: float 20s infinite linear;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(0) translateX(0) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.7;
+            }
+            90% {
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        /* 章节页面样式 */
+        .chapter-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chapter-header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid rgba(100, 140, 255, 0.3);
+        }
+        
+        .chapter-header h2 {
+            font-size: 2.8rem;
+            color: #aaccff;
+            margin-bottom: 15px;
+            text-shadow: 0 0 15px rgba(170, 204, 255, 0.5);
+        }
+        
+        .chapter-content {
+            flex-grow: 1;
+            background: rgba(30, 40, 80, 0.3);
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(100, 140, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            font-size: 1.2rem;
+            line-height: 1.8;
+            /* 关键修改：保留所有空格和换行 */
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'Microsoft YaHei', 'SimSun', serif;
+        }
+        
+        .back-to-toc {
+            display: inline-block;
+            padding: 12px 25px;
+            background: rgba(40, 60, 120, 0.7);
+            color: #c0d0ff;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(100, 140, 255, 0.3);
+            align-self: center;
+        }
+        
+        .back-to-toc:hover {
+            background: rgba(60, 80, 140, 0.9);
+            color: #ffffff;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .chapter-header h2 {
+                font-size: 2.2rem;
+            }
+            
+            .chapter-content {
+                padding: 25px;
+                font-size: 1.1rem;
+            }
+            
+            .toc-link {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="decoration" id="decoration"></div>
+    
+    <!-- 目录页面 -->
+    <div id="index-page" class="container">
+        <header>
+            <h1>深渊的凝视（重置版）</h1>
+            <div class="subtitle">芦荟叶将在此网站连载深渊后续内容</div>
+            <div class="description">
+               感谢主演：仙人掌，前妻姐，圣诞帽，点霜狼点，滴眼液，残晖，凌云志，长发男，芦荟叶，刘子熙，王泽元，熊HD，吴MN等等
+            </div>
+        </header>
+        
+        <div class="toc-container">
+            <ul class="toc-list">
+                <li class="toc-item">
+                    <a href="#prologue-page" class="toc-link">
+                        <div class="chapter-title">序章：终点</div>
+                        <div class="chapter-summary">2025.9.21</div>
+                    </a>
+                </li>
+               <li class="toc-item">
+    <div class="toc-section-divider">
+        第一篇：坠落
+    </div>
+</li>
+ <li class="toc-item">
+                    <a href="#chapter1-page" class="toc-link">
+                        <div class="chapter-title">第一章：第三次死亡</div>
+                        <div class="chapter-summary">2025.9.21</div>
+                    </a>
+                </li>
+                <li class="toc-item">
+                    <a href="#chapter2-page" class="toc-link">
+                        <div class="chapter-title">第二章：深渊之门</div>
+                        <div class="chapter-summary">2025.9.21</div>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <footer>
+            <p>深渊的凝视（重置版） &copy; 2025 - 连载中</p>
+        </footer>
+    </div>
+    
+    <!-- 序章页面 -->
+    <div id="prologue-page" class="chapter-container" style="display: none;">
+        <div class="chapter-header">
+            <h2>序章：终点</h2>
+        </div>
+        
+        <div class="chapter-content">
+熊荣泽靠在阳台上，十月的晚风有一点冷，呼吸间，寒气入侵了他的肺，冻住了心脏。他沉重的呼出一口气 ，鼻尖萦绕着的，都是苦涩的味道。
+熊荣泽像盯着老虎机的赌徒一般死死地盯着手机，屏幕上依旧只有绿油油的一片。屏幕上的时间一点一点地走过，十一点五十八，十一点五十九，零点。聊天框没有变化，但熊荣泽感觉它好像正邪恶地看着自己，嘲笑他。他认命般地闭上眼睛，背靠在阳台上一点一点地坐了下来，手机上的日期写着10月9号，他的生日已经过了，熊荣泽终究没有等到那条消息。
+他百无聊赖地翻着微信，只有两条“生日快乐”。但都不是她发的，一条来自熊浩南，一条来自吴珊。他突然有些愧疚地发现自己给他们的备注还是“老头”和“老太”，想了想，他改成了“老爹”，“老妈”。
+熊荣泽把脑袋埋进膝盖，上海光污染严重的夜空散发着淡淡地血红色，盖在他的身上。他穿了一件棕色的衬衫，有意无意地把胸口的阿迪达斯logo露出来。外面套了一件黑外套，故意把袖子撸起来，掩盖住袖口的补丁，希望没人能看出这是从熊浩南身上淘汰下来的。他饶有心机地用发胶抓了头发，只是他笨拙的手艺让他的锅盖头变成了鸡窝头。无论谁看见都会觉得这是个npc的穿搭，是他绞尽脑汁后对着他贫瘠的衣柜想出来最帅的搭配，可惜（或者说幸好）没有人约他出去。没有人记得他的生日，或者记得也不在乎，包括她。
+熊荣泽以前看到过一句话，“生日蛋糕就是青春的墓碑”，那时候他还觉得这样的想法未免太悲观了，现在竟然有点羡慕，毕竟他连块“墓碑”都没有。说不定等他真的死了，也只有熊浩南和吴珊会为他而哭，他这样悲观地想着。但是人活着总得有点盼头，他还是希望可以有很多人来看他，即使是在葬礼上。
+要不要死一个试试？这个恐怖的念头刚冒出来就被他死死按住，但是就像潘多拉的魔盒，打开了就再也关不上，这个想法像恶魔的低语反复地在他耳边念叨着，“去死吧，反正你活着也没有人在乎，你的人生有什么意义？你这辈子都不会有人在意你。”熊荣泽痛苦地捂住耳朵，于是低语声开始在心里回荡。熊荣泽感觉自己好像被从世界里割离了出去，明明近在眼前，却怎么都抓不住，之间隔着一层“可悲的厚障壁”。
+朋友圈亮起一个红点，熊荣泽像溺水的人终于抓到了救命稻草，他扑在地上，点开后却整个人都冰冻住了。那个粉色的动漫头像下面排着精心设计的九宫格，却没有他期盼的内容。甚至中心的图片里，那张他魂牵梦绕的脸旁边，挤着一张令他作呕的面孔。王泽方那种小人得意地的表情好像就在他面前，熊荣泽的手止不住地抖，他猛地站起来，头还撞上了墙壁。他眼前发黑，不知道是坐得太久缺氧了还是头撞晕了，亦或是气的。
+他打开那个聊天框，上面绿油油的一大片。他的字打了又删，删了又打，最终又全部删了，他甚至连质问她的勇气都没有。
+恶魔的低语又开始在耳边回响，熊荣泽看向窗台下面，漆黑一片什么也没有，黑色让他感觉到莫名的平静，像是回到了母亲肚子里，不用思考什么，不用担心什么，那是一片永恒的宁静，是他唯一的幸福。没有过多思考，他爬上了窗台。
+黑暗的触手向他蔓延过来，缠住他，拥抱住他，他闭上眼，感受到没感受过的温暖。终点一点点地靠近，一切都像是一场很长的梦。 
+        </div>
+        
+        <a href="#index-page" class="back-to-toc">返回目录</a>
+    </div>
+    
+    <!-- 第一章页面 -->
+    <div id="chapter1-page" class="chapter-container" style="display: none;">
+        <div class="chapter-header">
+            <h2>第一章：第三次死亡</h2>
+        </div>
+        
+        <div class="chapter-content">
+熊荣泽睁开眼，铁岭的风带着一股蛮横的土腥气，卷过漫山遍野的深绿浅翠，吹得那棵孤零零站在坡顶的老松发出低沉的呜咽。夕阳像一颗被砸烂的熔金心脏，泼洒出浓稠而惨烈的光，把整片山峦染上了一种即将凝固的血色。周围的景色熟悉而又陌生，熊荣泽缓缓坐起来，打量着身边的一切。
+突然间，他的目光不受控制地向一处看去，不远处有个穿着绿裙子的少女——覃菜，这个名字凭空浮现在了他的脑海里。覃菜正和邻家的几个少年少女说笑着，眉眼弯弯，清澈如山涧泉水的眼眸里盛满了夕阳的碎金，好看得让人心尖发颤。一个身材高大的少年不知说了什么，引得她咯咯笑起来，那笑声像银铃一样，敲在熊荣泽心上，没来由地带来一阵细密的酸楚。他飞快地低下头，心脏像是被一只无形的手攥紧，闷得发疼。
+他想起来了，覃菜很美，是铁岭这片粗犷土地上孕育出的灵秀，像山风一样自由，像阳光一样耀眼。而她最动人的，是她的歌声。那嗓音空灵清澈，唱起铁岭古老的歌谣时，仿佛能引来山风附和，让夕阳都流连。覃菜是铁岭上所有少年们的梦中情人，当然也包括熊荣泽。  
+他到现在都还记得他与覃思齐第一次见面时的场景。那是一个金黄色的夏日，少女站在暖风里，小麦色的皮肤泛着柔和的光，回头对他笑着。嘴角的弧度勾动了他的心弦，在这个金色的午后，少女像一个光明天使降落在了他暗无天日的世界里。
+熊荣泽是铁岭的一个孤儿，没有人知道他来自哪里，父母是谁，为什么出现在铁岭。这个还在襁褓中的婴儿就带着这一连串的问题出现在了铁岭的土地上，连他自己都记不清是怎样长大的。但是关于覃菜的一切却那么鲜明地浮现在脑海里，这真的是一件很奇怪的事。
+熊荣泽记得覃菜很擅长做甜点，总是做一些好吃的分给大家。有一次他看见覃菜和那个高大的少年在厨房里说着什么，少年拿起一块饼干和覃菜有说有笑地聊着。忽然间不知道怎么，少年皱起眉头扔下饼干，与覃菜争吵起来。熊荣泽站在外面，纠结着要不要上去帮忙。还没想好，少年怒气冲冲地走了出来。熊荣泽下意识地躲到了墙后边，余光瞥见覃菜把饼干放进了一个盒子里。
+第二天，覃菜把那盒饼干送给他，他脑子里一下子浮现出前一天的场景。呵，他不要的就送给我，我凭什么要接受。熊荣泽没怎么思考就一把把盒子扔进了树林，他记得覃菜震惊又不可置信的眼神，记得她那双忧郁的眼睛，记得她眼角破碎的流光。他意识到自己过分了，但一种可悲的自尊心捆着他停在了原地，看着覃菜跑远。他偷偷地溜进树林，找到了那个盒子，抱着它像只老鼠一样溜回家。他没有再打开那个盒子，他怕自己看见那些破碎的饼干就会想起覃菜破碎的眼泪。
+自那以后，覃菜虽然没有刻意疏远他，但举手投足间，熊荣泽总能感觉到两个人已经不在同一片世界里了。于是他只能窝在一颗老松树下，像下水道里的老鼠一样偷窥着覃菜的生活。
+此刻，不知是谁起哄，覃菜微微红了脸，却也没有太过推辞，她轻轻吸了口气，开口唱了起来。是一首婉转的山歌小调，关于山鬼和迷途的樵夫。她的声音不高，却极具穿透力，像一缕最纯净的泉水，潺潺流过暮色笼罩的山坡，连风似乎都安静了几分。
+熊荣泽的心脏像是被那歌声紧紧攥住了，一股难以言喻的酸涩和汹涌的情感几乎要冲破胸膛。他觉得这是世界上最好听的声音。但当他看到那个高大少年望着覃菜那专注甚至带着几分痴迷的眼神时，一股尖锐的自卑和别扭瞬间压倒了一切。
+歌声停了，众人发出真心实意的赞叹。
+“覃菜，你唱得真好听！”
+“像山泉水一样！”
+覃菜不好意思地笑了笑，目光下意识地飘向松树下的熊荣泽，带着一丝不易察觉的期待。
+熊荣泽猛地别开脸，故意用他能发出的最生硬、最满不在乎的语气嘟囔道：“哼…叽叽喳喳的，吵死了，有什么好听的。”话一出口，他就后悔了。他看到覃菜脸上那丝微弱的期待光芒瞬间黯淡下去，嘴角的笑意也变得有些勉强。她轻轻“哦”了一声，没再看他。
+那个高大少年立刻不满地瞪向熊荣泽：“喂！熊荣泽，你什么意思？不懂欣赏就别乱说！”熊荣泽心里堵得难受，像是吞下了一块棱角尖銳的石头，刮得五脏六腑都疼。他张了张嘴，却什么也说不出来，最终只是把头埋得更低，指甲深深掐进了掌心里。他恨自己的嘴硬，恨自己的懦弱，恨那句永远无法坦然说出口的“真好听”。
+
+天色近暮，人们三五成群，悉悉索索地散开，回到了村子里，一切如常。
+        </div>
+        
+        <a href="#index-page" class="back-to-toc">返回目录</a>
+    </div>
+    
+    <!-- 第二章页面 -->
+    <div id="chapter2-page" class="chapter-container" style="display: none;">
+        <div class="chapter-header">
+            <h2>第二章：深渊之门</h2>
+        </div>
+        
+        <div class="chapter-content">
+熊荣泽怔怔地看着眼前的“怪物”，就在几分钟前，这个绿色的身影从天而降，像一颗陨石坠入铁岭的山沟中，像一颗巨石投入湖面般打碎了他平静的生活。随着天空尽头传来一声尖锐的啼鸣，并非鸟类，更像是某种金属被巨力扭曲时发出的、能刺穿耳膜的噪音，粗暴地打断了铁岭平静的日常。
+所有人都惊疑不定地望去，一股源自灵魂深处的、莫名的恐惧攫住了他们。强大的威压如同实质，让所有人都僵在原地，动弹不得，如同被无形之手捏住的虫豸。身影缓缓抬起头，动作带着一种超越性别的、诡异的美感。来者拥有着一张令人惊叹的脸庞，古铜色的皮肤泛着金属光泽，五官精致得仿佛精心雕琢，融合了男性的锐利线条与女性的柔美轮廓，尤其那高挺的鼻梁，在阳光下投下冷硬的阴影。一双眼睛深邃如寒潭，看不到底，只有一种非人的、打量物品般的纯粹冷漠。那目光，本身就像是深渊的入口。
+熊荣泽发现祂的目光正凝聚在自己身上，意识到不对的他本能地想要逃跑，脚却纹丝不动，仿佛不是自己的躯体。“野性的气息…藏在温顺皮囊下的凶暴…”开口的声音甜美悦耳，如同浸了蜜糖的银铃，轻轻敲击在每个人的耳膜上，然而吐出的字眼却冰冷如刀，刮得人生疼。“虽然粗糙，但底子不错，我恩赐你超越这些垃圾的机会，跟我走吧。”
+“你是谁？你想干什么？”那个高大少年鼓起勇气喊道，声音却带着无法抑制的颤抖。“祂”扭过头，眼神冰冷得像三千年不化的寒冰，“看在我心情好的份上，允许你知道我的名讳。”祂微微仰起头，像是咒语般地吐出三个字，“孙——点——墨。”
+孙点墨？熊荣泽在心里咀嚼着这三个字，这个看起来就很凶狠的家伙居然有个这么文艺范的名字，这就是反差萌吗？他不着边地想到。然而孙点墨的目光猛地回到了他的身上，那目光如同冰冷的刀片刮过皮肤，让他汗毛倒竖。他感觉自己正被那深潭般的眼睛彻底看穿，所有的心思都无所遁形。“这家伙不会还能读心吧？”熊荣泽在心里嘀咕，“不要有一些狂妄的幻想。”孙点墨的话立刻证实了他的猜想。
+孙点墨——这雌雄莫辨的存在盯着熊荣泽，像是欣赏一件刚刚发现的、颇有潜力的工具。那种凝视，带着所有权般的意味。“跟我走。”那甜美的嗓音再次响起，却带着一种不容抗拒的、近乎残忍的磁性，“你的归宿不在这片穷乡僻壤。”“不…我哪里也不去！”熊荣泽从牙缝里挤出这句话，奋力抵抗着那几乎要碾碎他骨头的威压。虽然他对这片土地并没有什么情感，只是舍不得覃菜。“凡人的拒绝，毫无意义。”甜美的声线吐出最轻蔑的话语，祂伸出一根金属质感、指节分明的手指，轻轻点在了熊荣泽的眉心。
+熊荣泽瞬间感觉一股冰冷狂暴的力量涌入脑海，几乎要将他的意识撕碎。剧烈的痛苦让他浑身痉挛，眼前阵阵发黑。他听到覃菜和其他人发出的惊呼，却什么也做不了。那感觉，仿佛灵魂正被强行拖入一个冰冷的、黑暗的漩涡。“哦？内心深处…还藏着如此强烈的情感？绝望…卑微…却又滚烫得像熔岩…”那甜美的声音里带上了一丝玩味，像毒蛇吐信，“真是矛盾的灵魂…更适合‘深渊’了。” 熊荣泽不知道祂感知到了什么，那是他内心深处最隐秘、最不堪的角落，此刻正被无情地窥探和点评。
+“既然如此……你渴望力量吗？”熊荣泽抬头对上了孙点墨玩味的笑容，豆大的汗珠从熊荣泽额头滑落。“你什么意思？”“我可以给你力量，让你能主宰一切的力量，让你想做的事情都能成功，让你爱的人也爱上你，让你过上你梦想中的生活。”孙点墨开出的筹码过于诱人，以至于熊荣泽都警觉起来，“这么好的事情，凭什么轮到我？”孙点墨微微一笑，“怎么轮不到你，你太低估自己的潜力了。当然，我是有条件的——你要加入‘深渊’。”“深渊？那是什么？”“我没有那么多的耐心当你的百科全书，等你答应后自然会知道，最后问你一遍，你接不接受。”
+熊荣泽的内心剧烈地激荡起来，孙点墨的许诺太美好了，他真的对此动心了。只是……他的脑海中又浮现出覃菜的脸庞。她的笑容，她的悲伤，她的愤怒，她的失望。一幕幕都清晰起来，即使是她破碎的泪珠也那么美。“我……”熊荣泽艰难地开口，“不要答应他！”高大少年的声音突然响起，回忆中覃菜的画面猛然破碎，熊荣泽又想起那盒被少年拒绝后才送给他的饼干。嫉妒，不甘，愤怒的火焰突然间烧了起来，是的，这些事情都是因为自己没有力量，不能主宰自己的生活，凭什么！熊荣泽的内心咆哮起来。“我答应你的条件。”熊荣泽脱口而出，孙点墨看起来似乎毫不意外，他轻轻一笑，一挥手，一道绿色的光芒瞬间将熊荣泽包裹住，一股力量席卷着要把他带离地面。“荣泽！”覃菜终于反应过来，惊恐地喊出了他的名字。
+这一声呼喊，像针一样刺破了熊荣泽最后强撑的意志。在被强行带离地面的前一刻，他用尽最后一丝力气，猛地扑向旁边那棵老松——他常坐在那里，偷偷看着覃菜，听着她唱歌，然后说着言不由衷的伤人的话。
+树皮粗糙，他咬破了自己的指尖，剧痛让他保持了一瞬的清醒。鲜血混着松脂，他疯狂地、几乎是凭借本能地在斑驳的树皮上刻划着。那不是情书，那是一封写给自己的、绝望的遗书，是对那深渊凝视的、最后一点微弱的反抗。
+「我昨天晚上做了一个梦。」
+（血迹蜿蜒，字迹潦草而用力）
+「在梦里，她喜欢我，我喜欢她。」
+「具体事情已经忘了，但那种感觉……很幸福。」
+「等我醒来，意识到这是一场梦，不是真的。」
+「我哭了。」
+「我感觉自己像是个小丑，像是一条狗，被人随意戏弄的舔狗。」
+「但是我真的好喜欢她。」
+（字迹开始扭曲，力量在迅速流失）
+「每次点开微信看到有她的消息都会莫名其妙的开心，每次看到她和别的男生在一起都会感到难过，每次说自己不喜欢她，晚上都会想到她。」
+「她的歌声…其实最好听了…」
+（这一行字格外模糊，几乎被剧烈的颤抖破坏）
+「我好贱。」
+最后一道笔画几乎是用生命拖拽出来的，模糊不清。下一刻，无形的巨力彻底将他扯离地面，拖入高空。
+黑影冲天而起，撕裂铁岭最后的阳光，向着遥远未知的天际疾驰而去。熊荣泽最后看到的，是覃菜仰起的、写满惊恐和泪痕的脸，越来越小，直至消失。他耳边似乎又响起了她那空灵的歌声，但这一次，他再也无法用言不由衷的话去伤害她了。他突然后悔了，可前方已经没有回头路，只有更深、更冷的黑暗，是名为“深渊”的归宿，正张开它冰冷的怀抱。
+地上，只留下松树干上那篇用血与绝望写就的、未曾言爱却字字是爱、卑微入尘埃的“情书”，那句关于歌声的临终坦白，成了他唯一也是最后的口是心非的纠正。凄厉的山风刮过，卷起尘土，试图掩盖那斑驳的血迹，却只让那绝望的告白，在那位雌雄莫辨的掠食者留下的冰冷威压中，更显悲凉与渺小。
+他不是英雄，只是一个被深渊凝视并强行拖走的、卑微的、嘴硬的少年。而他的战争，此刻才刚刚开始。
+        </div>
+        
+        <a href="#index-page" class="back-to-toc">返回目录</a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 创建背景装饰元素
+            const decoration = document.getElementById('decoration');
+            for (let i = 0; i < 15; i++) {
+                const item = document.createElement('div');
+                item.classList.add('floating-item');
+                const size = Math.random() * 80 + 20;
+                item.style.width = `${size}px`;
+                item.style.height = `${size}px`;
+                item.style.left = `${Math.random() * 100}%`;
+                item.style.animationDelay = `${Math.random() * 20}s`;
+                item.style.animationDuration = `${Math.random() * 30 + 20}s`;
+                decoration.appendChild(item);
+            }
+            
+            // 获取所有页面
+            const pages = document.querySelectorAll('.container, .chapter-container');
+            // 获取所有目录链接
+            const tocLinks = document.querySelectorAll('.toc-link');
+            // 获取所有返回目录链接
+            const backLinks = document.querySelectorAll('.back-to-toc');
+            
+            // 为每个目录链接添加点击事件
+            tocLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // 获取目标页面ID
+                    const targetPageId = this.getAttribute('href').substring(1);
+                    
+                    // 隐藏所有页面
+                    pages.forEach(page => {
+                        page.style.display = 'none';
+                    });
+                    
+                    // 显示目标页面
+                    document.getElementById(targetPageId).style.display = 'flex';
+                    
+                    // 滚动到顶部
+                    window.scrollTo(0, 0);
+                });
+            });
+            
+            // 为返回目录链接添加点击事件
+            backLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // 隐藏所有页面
+                    pages.forEach(page => {
+                        page.style.display = 'none';
+                    });
+                    
+                    // 显示目录页面
+                    document.getElementById('index-page').style.display = 'flex';
+                    
+                    // 滚动到顶部
+                    window.scrollTo(0, 0);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
